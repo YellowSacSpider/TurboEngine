@@ -11,5 +11,5 @@ uniform	float	Offset;
 
 void main()
 {
-    FragColor = mix(texture(texture1, TexCoord), texture(texture2, vec2(TexCoord.x, TexCoord.y)), Offset);
+    FragColor = texture(texture1, vec2(TexCoord.x, TexCoord.y));
 }

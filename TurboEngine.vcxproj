@@ -70,11 +70,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\mateu\Desktop\syf\OpenGL Projects\GLFW\glfw-3.3.8\include;C:\Users\mateu\Desktop\syf\OpenGL Projects\glad\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\mateu\Desktop\syf\OpenGL Projects\glm;C:\Users\mateu\Desktop\syf\OpenGL Projects\GLFW\glfw-3.3.8\include;C:\Users\mateu\Desktop\syf\OpenGL Projects\glad\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\mateu\Desktop\syf\OpenGL Projects\GLFW\glfw-3.3.8\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\mateu\Desktop\syf\OpenGL Projects\GLFW\glfw-3.3.8\include;C:\Users\mateu\Desktop\syf\OpenGL Projects\glad\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\mateu\Desktop\syf\OpenGL Projects\glm;C:\Users\mateu\Desktop\syf\OpenGL Projects\GLFW\glfw-3.3.8\include;C:\Users\mateu\Desktop\syf\OpenGL Projects\glad\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\mateu\Desktop\syf\OpenGL Projects\GLFW\glfw-3.3.8\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -135,6 +135,7 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Shape.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -143,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.hpp" />
+    <ClInclude Include="Shape.hpp" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.hpp" />
   </ItemGroup>
