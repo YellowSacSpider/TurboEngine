@@ -1,23 +1,26 @@
-#define STB_IMAGE_IMPLEMENTATION
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-
+#define STB_IMAGE_IMPLEMENTATION
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <vector>
 
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Shape.hpp"
+#include "Camera.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
-float i = 0.f;
-float px, py, pz = 1.0f;
+Camera camera = Camera();
+
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
 
 int main()
 {
@@ -26,7 +29,6 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
 	GLFWwindow* window = glfwCreateWindow(800, 600, "TurboEngine", NULL, NULL);
 	if (window == NULL)
 	{
@@ -35,6 +37,10 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -42,27 +48,82 @@ int main()
 		return -1;
 	}
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	camera.BindWindow(window);
 	Shader ourShader("Shader.vertexshader", "Shader.fragmentshader");
-
+	camera.BindShader(&ourShader);
+	camera.FPSMode(true);
 	//Generate textures----------------------------------------------------------------------------------
-	Texture tex1("Main Ship - Base - Full health.png", GL_CLAMP_TO_EDGE, GL_RGBA);
-	Texture tex2("galaxy.jpg", GL_CLAMP_TO_EDGE, GL_RGB);
-	//ourShader.use();
+	Texture tex1("container.jpg", GL_CLAMP_TO_EDGE, GL_RGB);
+	Texture tex2("awesomeface.png", GL_REPEAT, GL_RGBA);
+	ourShader.use();
+	ourShader.setInt("texture1", 0);
+	ourShader.setInt("texture2", 1);
+
 
 	//---------------------------------------------------------------------------------------------------
 
 	float vertices[] = {
-		// positions             // texture coords
-		 0.5f,  0.5f, 0.0f,      1.0f, 1.0f,   // top right
-		 0.5f, -0.5f, 0.0f,      1.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,      0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,      0.0f, 1.0f    // top left 
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	unsigned int indices[] = {  // note that we start from 0!
 		0, 1, 3,   // first triangle
 		1, 2, 3    // second triangle
+	};
+
+
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 
@@ -92,41 +153,66 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 		processInput(window);
 		// rendering commands here
 		//...
+		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); //Default: glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-		
-		ourShader.use();
+		//float timeValue = glfwGetTime();
+		//float moveValue = (sin(timeValue) / 2.0f) - 0.5f;
+		//ourShader.setFloat("Offset", moveValue);
+		//glUniform1f(vertexOffsetLocation, moveValue);
 		glBindVertexArray(VAO);
 
+		ourShader.use();
 		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex1.texture);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, tex2.texture);
 
-		glm::mat4 background = glm::mat4(1.0f);
-		background = glm::translate(background, glm::vec3(0.0f, 0.0f, 0.0f));
-		background = glm::scale(background, glm::vec3(2.0f, 2.0f, 2.0f));
-		unsigned int transformLoc2 = glGetUniformLocation(ourShader.ID, "transform");
-		glUniformMatrix4fv(transformLoc2, 1, GL_FALSE, glm::value_ptr(background));
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// note that we're translating the scene in the reverse direction of where we want to move
+		camera.processInput(deltaTime);
+		camera.Update();
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			if (i % 3 == 0)
+			{
+				model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+				model = glm::translate(model, glm::vec3((float)cos(glfwGetTime()), (float)sin(glfwGetTime()), 0.0f));
+			}
+			else
+				model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));;
 
-		glBindTexture(GL_TEXTURE_2D, tex1.texture);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
-		glm::mat4 Player = glm::mat4(1.0f);
-		Player = glm::translate(Player, glm::vec3(px, py, 0.0f));
-		Player = glm::scale(Player, glm::vec3(0.5f, 0.5f, 0.5f));
+
+		/*
+		glm::mat4 transform2 = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		transform2 = glm::translate(transform2, glm::vec3(-0.5f, 0.5f, 0.0f));
+		transform2 = glm::scale(transform2, glm::vec3(abs((sin((float)glfwGetTime()) / 2.0f)-0.5f), abs((sin((float)glfwGetTime()) / 2.0f) - 0.5f), abs((sin((float)glfwGetTime()) / 2.0f) - 0.5f)));
+
 		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(Player));
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+		ourShader.use();
+		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		Rectangle rectangle;
-
-		rectangle.draw();
+		unsigned int transformLoc2 = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(transformLoc2, 1, GL_FALSE, glm::value_ptr(transform2));
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		*/
 
 		// check and call events and swap the buffers
 		glfwSwapBuffers(window);
@@ -155,24 +241,15 @@ void processInput(GLFWwindow* window)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	if (glfwGetKey(window, GLFW_KEY_F2) != GLFW_RELEASE)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) != GLFW_RELEASE)
-	{
-		if(px <= 0.8f)
-			px += 0.001f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) != GLFW_RELEASE)
-	{
-		if (px >= -0.8f)
-			px -= 0.001f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_UP) != GLFW_RELEASE)
-	{
-		if (py <= 0.8f)
-			py += 0.001f;
-	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) != GLFW_RELEASE)
-	{
-		if (py >= -0.8f)
-			py -= 0.001f;
-	}
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+
+	camera.CameraRotate(xpos, ypos);
+}
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	camera.CameraZoom(yoffset);
 }
