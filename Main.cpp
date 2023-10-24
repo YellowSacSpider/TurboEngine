@@ -11,6 +11,7 @@
 #include "Texture.hpp"
 #include "Shape.hpp"
 #include "Camera.hpp"
+#include "Sprite.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -29,7 +30,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	GLFWwindow* window = glfwCreateWindow(800, 600, "TurboEngine", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -56,6 +57,8 @@ int main()
 	//Generate textures----------------------------------------------------------------------------------
 	Texture tex1("container.jpg", GL_CLAMP_TO_EDGE, GL_RGB);
 	Texture tex2("awesomeface.png", GL_REPEAT, GL_RGBA);
+	Texture tex3("shotgun.png", GL_REPEAT, GL_RGBA);
+	Texture tex4("crossair.png", GL_REPEAT, GL_RGBA);
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
@@ -150,7 +153,8 @@ int main()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
+	Sprite weapon(tex3, glm::vec2(0.0f, -0.5f), glm::vec2(150.0f, 150.0f));
+	Sprite crossair(tex4, glm::vec2(0.0f, 0.0f), glm::vec2(20.0f, 20.0f));
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
@@ -195,7 +199,13 @@ int main()
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-
+		glBindVertexArray(0);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		crossair.draw();
+		weapon.draw();
+		weapon.translate(glm::vec2(-0.1f + cos(glfwGetTime()*8)/16, -0.5f));
+		glDisable(GL_BLEND);
 
 		/*
 		glm::mat4 transform2 = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
