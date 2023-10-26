@@ -4,14 +4,13 @@
 void Camera::processInput(double deltaTime) {
 	const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraSpeed * cameraFront;
+		cameraPos += (fpsCameraMode) ? (cameraFront - glm::vec3(0.0f, cameraFront.y, 0.0f)) * cameraSpeed : cameraFront * cameraSpeed;
 	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * cameraFront;
+		cameraPos -= (fpsCameraMode) ? (cameraFront - glm::vec3(0.0f, cameraFront.y, 0.0f)) * cameraSpeed : cameraFront * cameraSpeed;
 	if (glfwGetKey(_window, GLFW_KEY_A) == GLFW_PRESS)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (fpsCameraMode) cameraPos.y = 0.0f;
 }
 
 void Camera::CameraRotate(double xpos, double ypos) {
@@ -44,6 +43,7 @@ void Camera::CameraRotate(double xpos, double ypos) {
 	direction.y = sin(glm::radians(pitch));
 	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(direction);
+	//std::cout << cameraFront.x << "|" << cameraFront.y << "|" << cameraFront.z << '\n';
 }
 
 void Camera::CameraZoom(double yoffset) {
@@ -58,7 +58,8 @@ void Camera::FPSMode(bool mode) {
 	fpsCameraMode = mode;
 }
 
-void Camera::Update() {
+void Camera::Update(double deltaTime) {
+	processInput(deltaTime);
 	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	int viewLoc = glGetUniformLocation(_ourShader->ID, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -73,4 +74,12 @@ void Camera::BindShader(Shader* shader) {
 
 void Camera::BindWindow(GLFWwindow* window) {
 	_window = window;
+}
+
+glm::vec3 Camera::getPos() {
+	return cameraPos;
+}
+
+void Camera::translate(glm::vec3 pos) {
+	cameraPos += pos;
 }

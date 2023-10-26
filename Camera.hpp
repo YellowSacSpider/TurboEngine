@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -36,6 +37,7 @@ public:
 	void CameraZoom(double yoffset);
 	void BindWindow(GLFWwindow* window);
 	void FPSMode(bool mode);
-	void Update();
-
+	void Update(double deltaTime);
+	glm::vec3 getPos();
+	void translate(glm::vec3 transform);
 };

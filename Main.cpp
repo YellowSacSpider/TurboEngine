@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -30,7 +31,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "TurboEngine", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -180,8 +181,12 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, tex2.texture);
 
 		// note that we're translating the scene in the reverse direction of where we want to move
-		camera.processInput(deltaTime);
-		camera.Update();
+		float floor = -2.0f;
+		if (camera.getPos().y >= floor) {
+			camera.translate(glm::vec3(0.0f, -1.00f, 0.0f)*deltaTime);
+			std::cout << "POS Y: " << camera.getPos().y;
+		}
+		camera.Update(deltaTime);
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			glm::mat4 model = glm::mat4(1.0f);
@@ -195,7 +200,7 @@ int main()
 			else
 				model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));;
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
@@ -206,6 +211,7 @@ int main()
 		weapon.draw();
 		weapon.translate(glm::vec2(-0.1f + cos(glfwGetTime()*8)/16, -0.5f));
 		glDisable(GL_BLEND);
+
 
 		/*
 		glm::mat4 transform2 = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
