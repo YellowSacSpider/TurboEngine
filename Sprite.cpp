@@ -15,7 +15,7 @@ void Sprite::draw() {
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 void Sprite::translate(glm::vec2 transform) {
-	_pos = transform;
+	_pos += transform;
 }
 void Sprite::rotate(float angle, glm::vec2 transform) {
 	_angle = angle;

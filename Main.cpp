@@ -1,5 +1,4 @@
 #include <iostream>
-#include <algorithm>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -180,12 +179,34 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, tex2.texture);
 
+
 		// note that we're translating the scene in the reverse direction of where we want to move
-		float floor = -2.0f;
-		if (camera.getPos().y >= floor) {
-			camera.translate(glm::vec3(0.0f, -1.00f, 0.0f)*deltaTime);
-			std::cout << "POS Y: " << camera.getPos().y;
+		glm::vec3 playerSize = glm::vec3(200.0f, 200.0f, 200.0f);
+		glm::vec3 floorSize = glm::vec3(100.0f, 1.0f, 100.0f);
+		glm::vec3 floorPos = glm::vec3(0.0f, -10.0f, 0.0f);
+
+		if (camera.getPos().x + playerSize.x >= floorPos.x
+			&& floorPos.x + floorSize.x >= camera.getPos().x
+			&& camera.getPos().y + playerSize.y >= floorPos.y
+			&& floorPos.y + floorSize.y >= camera.getPos().y
+			&& camera.getPos().z + playerSize.z >= floorPos.z
+			&& floorPos.z + floorSize.z >= camera.getPos().z
+			) 
+		{
 		}
+		else {
+			camera.translate(glm::vec3(0.0f, -9.81f, 0.0f)* deltaTime);
+		}
+
+		//FLOOR
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, floorPos);
+		model = glm::scale(model, floorSize);
+		int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//
 		camera.Update(deltaTime);
 		for (unsigned int i = 0; i < 10; i++)
 		{
