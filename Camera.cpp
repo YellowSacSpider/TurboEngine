@@ -2,7 +2,7 @@
 
 
 void Camera::processInput(double deltaTime) {
-	const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
+	const float cameraSpeed = 16.5f * deltaTime; // adjust accordingly
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += (fpsCameraMode) ? (cameraFront - glm::vec3(0.0f, cameraFront.y, 0.0f)) * cameraSpeed : cameraFront * cameraSpeed;
 	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS)
@@ -11,6 +11,8 @@ void Camera::processInput(double deltaTime) {
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		cameraPos += glm::vec3(0.0f, 16.0f, 0.0f) * cameraSpeed;
 }
 
 void Camera::CameraRotate(double xpos, double ypos) {
@@ -63,7 +65,7 @@ void Camera::Update(double deltaTime) {
 	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	int viewLoc = glGetUniformLocation(_ourShader->ID, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-	projection = glm::perspective(glm::radians((float)fov), (float)800 / (float)600, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians((float)fov), (float)800 / (float)600, 0.1f, 1000.0f);
 	int projLoc = glGetUniformLocation(_ourShader->ID, "projection");
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }

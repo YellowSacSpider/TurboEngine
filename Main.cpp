@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Shader.hpp"
 #include "Texture.hpp"
@@ -57,8 +58,8 @@ int main()
 	//Generate textures----------------------------------------------------------------------------------
 	Texture tex1("container.jpg", GL_CLAMP_TO_EDGE, GL_RGB);
 	Texture tex2("awesomeface.png", GL_REPEAT, GL_RGBA);
-	Texture tex3("shotgun.png", GL_REPEAT, GL_RGBA);
-	Texture tex4("crossair.png", GL_REPEAT, GL_RGBA);
+	Texture tex3("shotgun.png", GL_CLAMP_TO_EDGE, GL_RGBA);
+	Texture tex4("crossair.png", GL_CLAMP_TO_EDGE, GL_RGBA);
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
@@ -153,8 +154,15 @@ int main()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	Sprite weapon(tex3, glm::vec2(0.0f, -0.5f), glm::vec2(150.0f, 150.0f));
+	Sprite weapon(tex3, glm::vec2(-0.07f, -0.5f), glm::vec2(150.0f, 150.0f));
 	Sprite crossair(tex4, glm::vec2(0.0f, 0.0f), glm::vec2(20.0f, 20.0f));
+
+	glm::vec3 playerSize = glm::vec3(2.0f, 1.0f, 2.0f);
+
+	glm::vec3 floorPos = glm::vec3(0.0f, 1.0f, 10.0f);
+	glm::vec3 floorSize = glm::vec3(500.0f, 1.0f, 500.0f);
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
@@ -163,50 +171,41 @@ int main()
 		processInput(window);
 		// rendering commands here
 		//...
-		glEnable(GL_DEPTH_TEST);
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); //Default: glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+
 
 		//float timeValue = glfwGetTime();
 		//float moveValue = (sin(timeValue) / 2.0f) - 0.5f;
 		//ourShader.setFloat("Offset", moveValue);
 		//glUniform1f(vertexOffsetLocation, moveValue);
 		glBindVertexArray(VAO);
-
 		ourShader.use();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex1.texture);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex2.texture);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, tex2.texture);
 
 
-		// note that we're translating the scene in the reverse direction of where we want to move
-		glm::vec3 playerSize = glm::vec3(200.0f, 200.0f, 200.0f);
-		glm::vec3 floorSize = glm::vec3(100.0f, 1.0f, 100.0f);
-		glm::vec3 floorPos = glm::vec3(0.0f, -10.0f, 0.0f);
+		bool collisionX = camera.getPos().x + playerSize.x / 2 >= -floorSize.x / 2 + floorPos.x && camera.getPos().x <= floorSize.x / 2 + floorPos.x;
+		bool collisionY = camera.getPos().y + playerSize.y / 2 >= -floorSize.y / 2 + -floorPos.y / 2 && camera.getPos().y <= floorSize.y + floorPos.y;
+		bool collisionZ = camera.getPos().z + playerSize.z / 2 >= -floorSize.z / 2 + floorPos.z && camera.getPos().z <= floorSize.z / 2 + floorPos.z;
 
-		if (camera.getPos().x + playerSize.x >= floorPos.x
-			&& floorPos.x + floorSize.x >= camera.getPos().x
-			&& camera.getPos().y + playerSize.y >= floorPos.y
-			&& floorPos.y + floorSize.y >= camera.getPos().y
-			&& camera.getPos().z + playerSize.z >= floorPos.z
-			&& floorPos.z + floorSize.z >= camera.getPos().z
-			) 
-		{
-		}
-		else {
-			camera.translate(glm::vec3(0.0f, -9.81f, 0.0f)* deltaTime);
-		}
+		if (collisionX && collisionY && collisionZ) std::cout << "COLLISION\n";
+		else camera.translate(glm::vec3(0.0f, -9.81f * deltaTime, 0.0f));
 
-		//FLOOR
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, floorPos);
 		model = glm::scale(model, floorSize);
 		int modelLoc = glGetUniformLocation(ourShader.ID, "model");
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		std::cout << glm::to_string(camera.getPos()) << std::endl;
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		//
+
+		// note that we're translating the scene in the reverse direction of where we want to move
 		camera.Update(deltaTime);
 		for (unsigned int i = 0; i < 10; i++)
 		{
@@ -226,11 +225,12 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		glBindVertexArray(0);
+		glDisable(GL_DEPTH_TEST);
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		crossair.draw();
 		weapon.draw();
-		weapon.translate(glm::vec2(-0.1f + cos(glfwGetTime()*8)/16, -0.5f));
 		glDisable(GL_BLEND);
 
 
