@@ -12,7 +12,7 @@ void Camera::processInput(double deltaTime) {
 	if (glfwGetKey(_window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		cameraPos += (cameraFront + glm::vec3(0.0f, 8.0f, 0.0f)) * cameraSpeed;
+		cameraPos += (((cameraFront - glm::vec3(0.0f, cameraFront.y, 0.0f)) * glm::vec3(4.0f, 0.0f, 4.0f) + glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec3(1.0f, 8.0f, 1.0f)) * cameraSpeed;
 }
 
 void Camera::CameraRotate(double xpos, double ypos) {

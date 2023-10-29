@@ -32,7 +32,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	GLFWwindow* window = glfwCreateWindow(800, 600, "TurboEngine", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -196,21 +196,21 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, tex1.texture);
 		//glActiveTexture(GL_TEXTURE1);
 		//glBindTexture(GL_TEXTURE_2D, tex2.texture);
-		camera.translate(glm::vec3(0.0f, (-9.81f+(-i)) * deltaTime, 0.0f));
-		i += 0.01f;
+		camera.translate(glm::vec3(0.0f, (-9.81f + (-i)) * deltaTime, 0.0f));
+		i += 1.0f * deltaTime;
 		bool collisionX;
 		bool collisionY;
 		bool collisionZ;
 		for (const auto& floorPos : scene) {
-			collisionX = camera.getPos().x + playerSize.x / 2 >= -floorSize.x / 2 + floorPos.x && camera.getPos().x <= floorSize.x / 2 + floorPos.x;
+			collisionX = camera.getPos().x + playerSize.x >= -floorSize.x / 2 + floorPos.x && camera.getPos().x <= floorSize.x / 2 + floorPos.x;
 			collisionY = camera.getPos().y + playerSize.y >= -floorSize.y / 2 + floorPos.y && camera.getPos().y <= floorSize.y / 2 + floorPos.y + 1;
-			collisionZ = camera.getPos().z + playerSize.z / 2 >= -floorSize.z / 2 + floorPos.z && camera.getPos().z <= floorSize.z / 2 + floorPos.z;
+			collisionZ = camera.getPos().z + playerSize.z >= -floorSize.z / 2 + floorPos.z && camera.getPos().z <= floorSize.z / 2 + floorPos.z;
 			if (collisionX && collisionY && collisionZ)
 			{
-				camera.translate(glm::vec3(0.0f, (9.81f+i) * deltaTime, 0.0f));
+				camera.translate(glm::vec3(0.0f, (9.81f + i)* deltaTime, 0.0f));
 				i = 1.0f;
-				std::cout << "COLLISION\n";
 			}
+
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, floorPos);
 			model = glm::scale(model, floorSize);
