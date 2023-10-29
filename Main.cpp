@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -159,10 +160,18 @@ int main()
 
 	glm::vec3 playerSize = glm::vec3(2.0f, 1.0f, 2.0f);
 
-	glm::vec3 floorPos = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 floorSize = glm::vec3(100.0f, 10000.0f, 100.0f);
+	//glm::vec3 floorPos = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 floorSize = glm::vec3(10.0f, 10.0f, 10.0f);
 
+	std::vector<glm::vec3> scene = {
+		glm::vec3(20.0f, 0.0f, 20.0f),
+		glm::vec3(40.0f, 0.0f, 40.0f),
+		glm::vec3(60.0f, 0.0f, 60.0f),
+		glm::vec3(80.0f, 0.0f, 80.0f),
 
+	};
+
+	float i = 1.0f;
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
@@ -187,23 +196,30 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, tex1.texture);
 		//glActiveTexture(GL_TEXTURE1);
 		//glBindTexture(GL_TEXTURE_2D, tex2.texture);
+		camera.translate(glm::vec3(0.0f, (-9.81f+(-i)) * deltaTime, 0.0f));
+		i += 0.01f;
+		bool collisionX;
+		bool collisionY;
+		bool collisionZ;
+		for (const auto& floorPos : scene) {
+			collisionX = camera.getPos().x + playerSize.x / 2 >= -floorSize.x / 2 + floorPos.x && camera.getPos().x <= floorSize.x / 2 + floorPos.x;
+			collisionY = camera.getPos().y + playerSize.y >= -floorSize.y / 2 + floorPos.y && camera.getPos().y <= floorSize.y / 2 + floorPos.y + 1;
+			collisionZ = camera.getPos().z + playerSize.z / 2 >= -floorSize.z / 2 + floorPos.z && camera.getPos().z <= floorSize.z / 2 + floorPos.z;
+			if (collisionX && collisionY && collisionZ)
+			{
+				camera.translate(glm::vec3(0.0f, (9.81f+i) * deltaTime, 0.0f));
+				i = 1.0f;
+				std::cout << "COLLISION\n";
+			}
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, floorPos);
+			model = glm::scale(model, floorSize);
+			int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			//std::cout << glm::to_string(camera.getPos()) << std::endl;
 
-
-		bool collisionX = camera.getPos().x + playerSize.x / 2 >= -floorSize.x / 2 + floorPos.x && camera.getPos().x <= floorSize.x / 2 + floorPos.x;
-		bool collisionY = camera.getPos().y + playerSize.y  >= -floorSize.y / 2 + floorPos.y && camera.getPos().y <= floorSize.y / 2 + floorPos.y + 1;
-		bool collisionZ = camera.getPos().z + playerSize.z / 2 >= -floorSize.z / 2 + floorPos.z && camera.getPos().z <= floorSize.z / 2 + floorPos.z;
-
-		if (collisionX && collisionY && collisionZ); /*std::cout << "COLLISION\n";*/
-		else camera.translate(glm::vec3(0.0f, -9.81f * deltaTime, 0.0f));
-
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, floorPos);
-		model = glm::scale(model, floorSize);
-		int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		std::cout << glm::to_string(camera.getPos()) << std::endl;
-
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		// note that we're translating the scene in the reverse direction of where we want to move
 		camera.Update(deltaTime);
