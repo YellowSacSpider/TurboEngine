@@ -159,8 +159,8 @@ int main()
 
 	glm::vec3 playerSize = glm::vec3(2.0f, 1.0f, 2.0f);
 
-	glm::vec3 floorPos = glm::vec3(0.0f, 1.0f, 10.0f);
-	glm::vec3 floorSize = glm::vec3(500.0f, 1.0f, 500.0f);
+	glm::vec3 floorPos = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 floorSize = glm::vec3(100.0f, 10000.0f, 100.0f);
 
 
 	while (!glfwWindowShouldClose(window))
@@ -190,10 +190,10 @@ int main()
 
 
 		bool collisionX = camera.getPos().x + playerSize.x / 2 >= -floorSize.x / 2 + floorPos.x && camera.getPos().x <= floorSize.x / 2 + floorPos.x;
-		bool collisionY = camera.getPos().y + playerSize.y / 2 >= -floorSize.y / 2 + -floorPos.y / 2 && camera.getPos().y <= floorSize.y + floorPos.y;
+		bool collisionY = camera.getPos().y + playerSize.y  >= -floorSize.y / 2 + floorPos.y && camera.getPos().y <= floorSize.y / 2 + floorPos.y + 1;
 		bool collisionZ = camera.getPos().z + playerSize.z / 2 >= -floorSize.z / 2 + floorPos.z && camera.getPos().z <= floorSize.z / 2 + floorPos.z;
 
-		if (collisionX && collisionY && collisionZ) std::cout << "COLLISION\n";
+		if (collisionX && collisionY && collisionZ); /*std::cout << "COLLISION\n";*/
 		else camera.translate(glm::vec3(0.0f, -9.81f * deltaTime, 0.0f));
 
 		glm::mat4 model = glm::mat4(1.0f);
