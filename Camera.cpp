@@ -13,6 +13,16 @@ void Camera::processInput(double deltaTime) {
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(_window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		cameraPos += (((cameraFront - glm::vec3(0.0f, cameraFront.y, 0.0f)) * glm::vec3(4.0f, 0.0f, 4.0f) + glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec3(1.0f, 8.0f, 1.0f)) * cameraSpeed;
+	if (glfwGetKey(_window, GLFW_KEY_R) == GLFW_PRESS)
+	{
+		glm::mat4 ray = glm::mat4(1.0f);
+		glm::vec3 raycastPos = cameraPos + cameraFront * 500.0f;
+		raycast.setPos(raycastPos);
+		ray = glm::inverse(glm::lookAt(raycastPos, cameraPos, cameraUp));
+		ray = glm::scale(ray, glm::vec3(0.1f, 0.1f, 1000.0f));
+		raycast.setTransformMatrix(ray);
+	}
+
 }
 
 void Camera::CameraRotate(double xpos, double ypos) {
@@ -84,4 +94,8 @@ glm::vec3 Camera::getPos() {
 
 void Camera::translate(glm::vec3 pos) {
 	cameraPos += pos;
+}
+
+Raycast Camera::getRaycast() {
+	return raycast;
 }

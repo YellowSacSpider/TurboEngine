@@ -9,6 +9,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include "Shader.hpp"
+#include "Raycast.hpp"
+
 class Camera {
 private:
 	GLFWwindow* _window = nullptr;
@@ -19,6 +21,8 @@ private:
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
+
+	Raycast raycast = Raycast(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
 	bool firstMouse = true;
 	double yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
@@ -42,4 +46,5 @@ public:
 	void Update(double deltaTime);
 	glm::vec3 getPos();
 	void translate(glm::vec3 transform);
+	Raycast getRaycast();
 };

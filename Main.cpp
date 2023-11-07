@@ -14,6 +14,7 @@
 #include "Shape.hpp"
 #include "Camera.hpp"
 #include "Sprite.hpp"
+#include "Raycast.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -54,6 +55,7 @@ int main()
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	camera.BindWindow(window);
 	Shader ourShader("Shader.vertexshader", "Shader.fragmentshader");
+	Shader raycastShader("Shader.vertexshader", "Deprecated/Primitive.fragmentshader");
 	camera.BindShader(&ourShader);
 	camera.FPSMode(true);
 	//Generate textures----------------------------------------------------------------------------------
@@ -112,6 +114,50 @@ int main()
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
+	float verticesRaycast[] = {
+	-0.5f, -0.5f, -0.5f,
+	 0.5f, -0.5f, -0.5f,
+	 0.5f,  0.5f, -0.5f,
+	 0.5f,  0.5f, -0.5f,
+	-0.5f,  0.5f, -0.5f,
+	-0.5f, -0.5f, -0.5f,
+
+	-0.5f, -0.5f,  0.5f,
+	 0.5f, -0.5f,  0.5f,
+	 0.5f,  0.5f,  0.5f,
+	 0.5f,  0.5f,  0.5f,
+	-0.5f,  0.5f,  0.5f,
+	-0.5f, -0.5f,  0.5f,
+
+	-0.5f,  0.5f,  0.5f,
+	-0.5f,  0.5f, -0.5f,
+	-0.5f, -0.5f, -0.5f,
+	-0.5f, -0.5f, -0.5f,
+	-0.5f, -0.5f,  0.5f,
+	-0.5f,  0.5f,  0.5f,
+
+	 0.5f,  0.5f,  0.5f,
+	 0.5f,  0.5f, -0.5f,
+	 0.5f, -0.5f, -0.5f,
+	 0.5f, -0.5f, -0.5f,
+	 0.5f, -0.5f,  0.5f,
+	 0.5f,  0.5f,  0.5f,
+
+	-0.5f, -0.5f, -0.5f,
+	 0.5f, -0.5f, -0.5f,
+	 0.5f, -0.5f,  0.5f,
+	 0.5f, -0.5f,  0.5f,
+	-0.5f, -0.5f,  0.5f,
+	-0.5f, -0.5f, -0.5f,
+
+	-0.5f,  0.5f, -0.5f,
+	 0.5f,  0.5f, -0.5f,
+	 0.5f,  0.5f,  0.5f,
+	 0.5f,  0.5f,  0.5f,
+	-0.5f,  0.5f,  0.5f,
+	-0.5f,  0.5f, -0.5f,
+	};
+
 	unsigned int indices[] = {  // note that we start from 0!
 		0, 1, 3,   // first triangle
 		1, 2, 3    // second triangle
@@ -155,10 +201,33 @@ int main()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	//Raycast
+	unsigned int VBO1, VAO1, EBO1;
+	glGenBuffers(1, &VBO1);
+	glGenBuffers(1, &EBO1);
+	glGenVertexArrays(1, &VAO1);
+
+	glBindVertexArray(VAO1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticesRaycast), verticesRaycast, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO1);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
 	Sprite weapon(tex3, glm::vec2(-0.07f, -0.5f), glm::vec2(150.0f, 150.0f));
 	Sprite crossair(tex4, glm::vec2(0.0f, 0.0f), glm::vec2(20.0f, 20.0f));
 
-	glm::vec3 playerSize = glm::vec3(2.0f, 1.0f, 2.0f);
+	glm::vec3 playerSize = glm::vec3(2.0f, 100.0f, 2.0f);
 
 	//glm::vec3 floorPos = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 floorSize = glm::vec3(10.0f, 10.0f, 10.0f);
@@ -171,7 +240,7 @@ int main()
 
 	};
 
-	float i = 1.0f;
+	float i = 0.1f;
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = glfwGetTime();
@@ -183,20 +252,18 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); //Default: glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
-
-
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex1.texture);
 		//float timeValue = glfwGetTime();
 		//float moveValue = (sin(timeValue) / 2.0f) - 0.5f;
 		//ourShader.setFloat("Offset", moveValue);
 		//glUniform1f(vertexOffsetLocation, moveValue);
 		glBindVertexArray(VAO);
 		ourShader.use();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex1.texture);
 		processInput(window);
 		//glActiveTexture(GL_TEXTURE1);
 		//glBindTexture(GL_TEXTURE_2D, tex2.texture);
-		camera.translate(glm::vec3(0.0f, (-9.81f + (-i)) * deltaTime, 0.0f));
+		camera.translate(glm::vec3(0.0f, (-9.81f-i) * deltaTime, 0.0f));
 		i += 1.0f * deltaTime;
 		bool collisionX;
 		bool collisionY;
@@ -207,7 +274,7 @@ int main()
 			collisionZ = camera.getPos().z + playerSize.z >= -floorSize.z / 2 + floorPos.z && camera.getPos().z <= floorSize.z / 2 + floorPos.z;
 			if (collisionX && collisionY && collisionZ)
 			{
-				camera.translate(glm::vec3(0.0f, (9.81f + i)* deltaTime, 0.0f));
+				camera.translate(glm::vec3(0.0f, (9.81f + i) * deltaTime, 0.0f));
 				i = 1.0f;
 			}
 
@@ -217,12 +284,8 @@ int main()
 			int modelLoc = glGetUniformLocation(ourShader.ID, "model");
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 			//std::cout << glm::to_string(camera.getPos()) << std::endl;
-
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-
-		// note that we're translating the scene in the reverse direction of where we want to move
-		camera.Update(deltaTime);
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			glm::mat4 model = glm::mat4(1.0f);
@@ -240,7 +303,21 @@ int main()
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		glBindVertexArray(0);
+		camera.BindShader(&ourShader);
+		camera.Update(deltaTime);
+		glBindVertexArray(VAO1);
+		raycastShader.use();
+		glm::mat4 model = glm::mat4(1.0f);
+		model = camera.getRaycast().getTransformMatrix();
+		int modelLoc = glGetUniformLocation(raycastShader.ID, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//std::cout << glm::to_string(camera.getPos()) << std::endl;
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		if (camera.getRaycast().Intersect(glm::vec3(20.0f, 0.0f, 20.0f), glm::vec3(10.0f, 10.0f, 10.0f))) std::cout << "COLLISION" << std::endl;
+		camera.BindShader(&raycastShader);
+		camera.Update(deltaTime);
+
+		// note that we're translating the scene in the reverse direction of where we want to move
 		glDisable(GL_DEPTH_TEST);
 
 		glEnable(GL_BLEND);
